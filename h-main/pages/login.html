@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="pt-BR" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LoanFlow - Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'media',
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                900: '#0f172a',
+                800: '#1e1b4b',
+                700: '#312e81',
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <link rel="stylesheet" href="../css/styles.css" />
+  </head>
+  <body class="h-full bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-slate-100 flex items-center justify-center p-4">
+    <div id="loader" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center"><div class="loader-ring"></div></div>
+    <main class="w-full max-w-md bg-slate-900/70 border border-slate-800 rounded-2xl p-8 shadow-2xl glass fade-in">
+      <h1 class="text-3xl font-bold mb-1">LoanFlow</h1>
+      <p class="text-slate-400 mb-6">Gestão de empréstimos profissional.</p>
+
+      <form id="loginForm" class="space-y-4">
+        <div>
+          <label class="block text-sm mb-1">E-mail</label>
+          <input id="email" type="email" required class="w-full px-3 py-2 bg-slate-800 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Senha</label>
+          <input id="password" type="password" required class="w-full px-3 py-2 bg-slate-800 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+        <button class="w-full bg-indigo-600 hover:bg-indigo-500 transition rounded-lg py-2 font-medium">Entrar</button>
+      </form>
+
+      <button id="forgotPasswordBtn" class="mt-4 text-cyan-400 text-sm hover:underline">Esqueci minha senha</button>
+    </main>
+    <div id="toastContainer" class="fixed top-4 right-4 z-50"></div>
+    <script type="module" src="../js/auth.js"></script>
+  </body>
+</html>
