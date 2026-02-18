@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LoanFlow - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'media',
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                950: '#020617',
+                900: '#0f172a',
+                800: '#1e1b4b',
+                700: '#312e81',
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.3/dist/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="../css/styles.css" />
+  </head>
+  <body class="bg-slate-950 text-slate-100 min-h-screen">
+    <div id="loader" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center"><div class="loader-ring"></div></div>
+    <div id="sidebar"></div>
+
+    <main class="lg:ml-64 p-4 lg:p-8 space-y-6 fade-in">
+      <header class="flex flex-wrap gap-3 justify-between items-center">
+        <div>
+          <h1 class="text-2xl font-bold">Painel Administrativo</h1>
+          <p class="text-slate-400 text-sm">Olá, <span id="userName"></span> <span id="roleBadge" class="ml-2 px-2 py-0.5 rounded bg-indigo-600/40"></span></p>
+        </div>
+        <div class="flex gap-2">
+          <button id="backupBtn" class="px-3 py-2 rounded bg-slate-800">Backup</button>
+          <button id="logoutBtn" class="px-3 py-2 rounded bg-rose-700">Sair</button>
+        </div>
+      </header>
+
+      <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3">
+        <article class="bg-slate-900 rounded-xl p-4 shadow"><p class="text-slate-400 text-xs">Total emprestado</p><strong id="totalEmprestado"></strong></article>
+        <article class="bg-slate-900 rounded-xl p-4 shadow"><p class="text-slate-400 text-xs">Total com juros</p><strong id="totalComJuros"></strong></article>
+        <article class="bg-slate-900 rounded-xl p-4 shadow"><p class="text-slate-400 text-xs">Lucro total</p><strong id="lucroTotal"></strong></article>
+        <article class="bg-slate-900 rounded-xl p-4 shadow"><p class="text-slate-400 text-xs">Quantidade de clientes</p><strong id="qntClientes"></strong></article>
+        <article class="bg-slate-900 rounded-xl p-4 shadow"><p class="text-slate-400 text-xs">Clientes ativos</p><strong id="clientesAtivos"></strong></article>
+      </section>
+
+      <section class="grid xl:grid-cols-2 gap-4">
+        <article class="bg-slate-900 rounded-xl p-4"><h2 class="font-semibold mb-2">Empréstimos mensais</h2><canvas id="loanChart"></canvas></article>
+        <article class="bg-slate-900 rounded-xl p-4"><h2 class="font-semibold mb-2">Lucro mensal</h2><canvas id="profitChart"></canvas></article>
+      </section>
+
+      <section class="bg-slate-900 rounded-xl p-4">
+        <h2 class="font-semibold mb-4">Cadastro de Cliente</h2>
+        <form id="clientForm" class="grid md:grid-cols-3 gap-3 text-sm">
+          <input id="name" required placeholder="Nome completo" class="px-3 py-2 bg-slate-800 rounded" />
+          <input id="cpf" required placeholder="CPF" class="px-3 py-2 bg-slate-800 rounded" />
+          <input id="phone" required placeholder="Telefone" class="px-3 py-2 bg-slate-800 rounded" />
+          <input id="address" required placeholder="Endereço" class="px-3 py-2 bg-slate-800 rounded" />
+          <input id="loanAmount" required type="number" min="0" step="0.01" placeholder="Valor emprestado" class="px-3 py-2 bg-slate-800 rounded" />
+          <input id="interest" required type="number" min="0" step="0.01" placeholder="Juros (%)" class="px-3 py-2 bg-slate-800 rounded" />
+          <input id="months" required type="number" min="1" placeholder="Prazo em meses" class="px-3 py-2 bg-slate-800 rounded" />
+          <select id="compoundingPeriod" class="px-3 py-2 bg-slate-800 rounded"><option value="monthly">Juros mensal</option><option value="weekly">Juros semanal</option><option value="daily">Juros diário</option></select>
+          <input id="loanDate" required type="date" class="px-3 py-2 bg-slate-800 rounded" />
+          <select id="status" class="px-3 py-2 bg-slate-800 rounded"><option value="ativo">Ativo</option><option value="pago">Pago</option><option value="atrasado">Atrasado</option></select>
+          <input id="installmentCount" type="number" min="1" placeholder="Qtd. parcelas" class="px-3 py-2 bg-slate-800 rounded" />
+          <input id="photo" type="file" accept="image/*" class="px-3 py-2 bg-slate-800 rounded" />
+          <button class="px-3 py-2 bg-indigo-600 rounded">Salvar cliente</button>
+        </form>
+      </section>
+
+      <section class="bg-slate-900 rounded-xl p-4">
+        <div class="flex flex-wrap gap-2 mb-3 text-sm">
+          <input id="searchInput" placeholder="Buscar por CPF ou nome" class="px-3 py-2 bg-slate-800 rounded" />
+          <select id="statusFilter" class="px-3 py-2 bg-slate-800 rounded"><option value="">Todos</option><option value="ativo">Ativo</option><option value="pago">Pago</option><option value="atrasado">Atrasado</option></select>
+          <input id="startDate" type="date" class="px-3 py-2 bg-slate-800 rounded" />
+          <input id="endDate" type="date" class="px-3 py-2 bg-slate-800 rounded" />
+          <select id="sortValue" class="px-3 py-2 bg-slate-800 rounded"><option value="">Sem ordenação</option><option value="asc">Valor crescente</option><option value="desc">Valor decrescente</option></select>
+          <button id="exportPdfBtn" class="px-3 py-2 bg-cyan-700 rounded">Exportar PDF</button>
+          <button id="exportExcelBtn" class="px-3 py-2 bg-emerald-700 rounded">Exportar Excel</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead><tr class="text-left text-slate-400"><th>Nome</th><th>CPF</th><th>Valor</th><th>Total</th><th>Juros</th><th>Status</th><th>Data</th><th>Ações</th></tr></thead>
+            <tbody id="clientTableBody"></tbody>
+          </table>
+        </div>
+        <div id="pagination" class="flex gap-2 mt-3"></div>
+      </section>
+
+      <section class="grid xl:grid-cols-3 gap-4">
+        <article class="bg-slate-900 rounded-xl p-4">
+          <h3 class="font-semibold mb-2">Relatórios</h3>
+          <ul class="space-y-2 text-sm">
+            <li>Mensal: <strong id="reportMonthly"></strong></li>
+            <li>Anual: <strong id="reportYearly"></strong></li>
+            <li>Total arrecadado: <strong id="reportArrecadado"></strong></li>
+            <li>Inadimplentes: <strong id="reportInadimplentes"></strong></li>
+          </ul>
+        </article>
+        <article class="bg-slate-900 rounded-xl p-4">
+          <h3 class="font-semibold mb-2">Ranking de clientes</h3>
+          <ol id="ranking" class="list-decimal ml-5 text-sm space-y-1"></ol>
+        </article>
+        <article class="bg-slate-900 rounded-xl p-4">
+          <h3 class="font-semibold mb-2">Notificações de vencimento</h3>
+          <ul id="notifications" class="text-sm space-y-1"></ul>
+        </article>
+      </section>
+
+      <section class="bg-slate-900 rounded-xl p-4">
+        <h3 class="font-semibold mb-2">Log de atividades</h3>
+        <ul id="logsList" class="text-sm space-y-1"></ul>
+      </section>
+    </main>
+
+    <div id="toastContainer" class="fixed top-4 right-4 z-50"></div>
+    <script type="module" src="../js/dashboard.js"></script>
+  </body>
+</html>
